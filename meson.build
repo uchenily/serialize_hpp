@@ -1,4 +1,4 @@
-project('print', 'cpp',
+project('serialize_hpp', 'cpp',
   version: '0.0.1',
   default_options: [
     'buildtype=debug',
@@ -9,10 +9,10 @@ project('print', 'cpp',
 
 compile_args = []
 
-includes = include_directories('print')
+includes = include_directories('.')
 
 dependencies = []
 
 subdir('tests')
 
-install_subdir('print', install_dir: 'include')
+install_subdir('serialize_hpp', install_dir: 'include')

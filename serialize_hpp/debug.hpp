@@ -2,7 +2,9 @@
 
 #include "log.hpp"
 
-static inline auto &debug_logger = print::log::console;
+inline auto &debug_logger = print_hpp::log::console;
+
+#define PRINT_FMT(...) debug_logger.printf(__VA_ARGS__)
 
 #if !defined(NDEBUG)
 
