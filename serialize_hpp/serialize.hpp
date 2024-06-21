@@ -23,8 +23,7 @@ namespace detail {
 
 template <typename Value, typename Container>
 auto serialize(const Value &val, Container &container) {
-    constexpr std::size_t N
-        = fzto::aggregate_arity<std::remove_cv_t<Value>>::size();
+    constexpr auto N = num_fields(val);
     detail::serialize_helper<Value, Container, 0, N>(val, container);
 }
 
@@ -52,10 +51,8 @@ namespace detail {
 
 template <typename Value, typename Container>
 auto deserialize(Container &container) {
-    Value val;
-
-    constexpr std::size_t N
-        = fzto::aggregate_arity<std::remove_cv_t<Value>>::size();
+    auto           val = Value{};
+    constexpr auto N = num_fields(val);
     detail::deserialize_helper<Value, Container, 0, N>(val, container, 0);
     return val;
 }
