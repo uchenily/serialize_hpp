@@ -81,7 +81,7 @@ auto main() -> int {
              P(std::vector{"R", "G", "B", "Y"}));
     LOG_INFO("print_custom::printer<T>: {}",
              P(Person{.name = "wangmazi", .age = 36}));
-    PRINT_FMT("{}\n", P(Person{.name = "wangwu", .age = 48}));
+    PRINT("{}", P(Person{.name = "wangwu", .age = 48}));
 
     print("hello", 'a', std::numbers::pi);
 }

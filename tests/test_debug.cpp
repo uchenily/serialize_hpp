@@ -1,7 +1,7 @@
 #include "serialize_hpp/debug.hpp"
 
 auto main() -> int {
-    PRINT_FMT("{:=^60}\n", "hello world");
+    PRINT("{:=^60}", "hello world");
     SET_LOG_LEVEL(print_hpp::log::LogLevel::TRACE);
     LOG_TRACE("hello world");
     LOG_DEBUG("hello world");

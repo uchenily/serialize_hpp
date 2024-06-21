@@ -4,7 +4,8 @@
 
 inline auto &debug_logger = print_hpp::log::console;
 
-#define PRINT_FMT(...) debug_logger.printf(__VA_ARGS__)
+#define PRINT_NL(...) debug_logger.printf(__VA_ARGS__)
+#define PRINT(...) debug_logger.printfln(__VA_ARGS__)
 
 #if !defined(NDEBUG)
 
