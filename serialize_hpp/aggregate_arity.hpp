@@ -73,9 +73,9 @@ constexpr auto get(type &value) noexcept -> decltype(auto) {
 
 template <typename T>
 constexpr auto num_fields() noexcept -> std::size_t {
-    // return aggregate_arity<
-    //     std::remove_reference_t<std::remove_cv_t<T>>>::size();
-    return aggregate_arity<std::decay<T>>::size();
+    // FIXME: 为什么换成 std::decay 就出现问题?
+    return aggregate_arity<
+        std::remove_reference_t<std::remove_cv_t<T>>>::size();
 }
 
 } // namespace fzto
