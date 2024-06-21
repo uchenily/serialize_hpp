@@ -23,7 +23,7 @@ namespace detail {
 
 template <typename Value, typename Container>
 auto serialize(const Value &val, Container &container) {
-    constexpr auto N = num_fields(val);
+    constexpr auto N = num_fields<Value>();
     detail::serialize_helper<Value, Container, 0, N>(val, container);
 }
 
@@ -52,7 +52,7 @@ namespace detail {
 template <typename Value, typename Container>
 auto deserialize(Container &container) {
     auto           val = Value{};
-    constexpr auto N = num_fields(val);
+    constexpr auto N = num_fields<Value>();
     detail::deserialize_helper<Value, Container, 0, N>(val, container, 0);
     return val;
 }

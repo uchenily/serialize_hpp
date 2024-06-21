@@ -61,7 +61,7 @@ constexpr auto get(type &value) noexcept -> decltype(auto) {
 }
 
 template <typename T>
-constexpr auto num_fields(T & /*unused*/) noexcept -> std::size_t {
+constexpr auto num_fields() noexcept -> std::size_t {
     return aggregate_arity<
         std::remove_reference_t<std::remove_cv_t<T>>>::size();
 }
