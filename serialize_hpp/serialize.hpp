@@ -22,6 +22,9 @@ namespace detail {
 } // namespace detail
 
 template <typename Container, typename Value>
+    requires requires(Container c, typename Container::value_type v) {
+        { c.push_back(v) } -> std::same_as<void>;
+    }
 auto serialize(const Value &val) {
     auto container = Container{};
 
@@ -53,6 +56,9 @@ namespace detail {
 } // namespace detail
 
 template <typename Value, typename Container>
+    requires requires(Container c, std::size_t i) {
+        { c[i] } -> std::convertible_to<typename Container::value_type>;
+    }
 auto deserialize(Container &container) {
     auto           val = Value{};
     constexpr auto N = num_fields<Value>();
