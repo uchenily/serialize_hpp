@@ -43,7 +43,23 @@ void test_unsigned() {
     ASSERT(us2.u64 == 400);
 }
 
+void test_floatpoint() {
+    struct floatpoint_struct {
+        float  f;
+        double d;
+    };
+    auto fs = floatpoint_struct{
+        100,
+        200,
+    };
+    auto buf = fzto::serialize<std::string>(fs);
+    auto fs2 = fzto::deserialize<floatpoint_struct>(buf);
+    ASSERT(fs2.f - 100 < 0.001);
+    ASSERT(fs2.d - 200 < 0.001);
+}
+
 auto main() -> int {
     test_signed();
     test_unsigned();
+    test_floatpoint();
 }
