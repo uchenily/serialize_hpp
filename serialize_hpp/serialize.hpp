@@ -21,10 +21,13 @@ namespace detail {
     }
 } // namespace detail
 
-template <typename Value, typename Container>
-auto serialize(const Value &val, Container &container) {
+template <typename Container, typename Value>
+auto serialize(const Value &val) {
+    auto container = Container{};
+
     constexpr auto N = num_fields<Value>();
     detail::serialize_helper<Value, Container, 0, N>(val, container);
+    return container;
 }
 
 namespace detail {
