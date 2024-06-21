@@ -14,7 +14,8 @@ auto main() -> int {
     std::string buf;
     fzto::serialize<Person, std::string>(p, buf);
     PRINT_FMT("serialize result : `{}` length: {}\n", buf.data(), buf.size());
-    // auto another = deserialize<Person>(buf);
+    auto another = fzto::deserialize<Person>(buf);
     // ASSERT(another.name == "zhangsan");
     // ASSERT(another.age == 18);
+    ASSERT(another.age == 0x7654321);
 }
