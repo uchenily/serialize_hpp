@@ -1,6 +1,7 @@
 #include "serialize_hpp/aggregate_arity.hpp"
 #include "serialize_hpp/debug.hpp"
 #include <cstring>
+#include <type_traits>
 namespace fzto {
 
 namespace detail {
@@ -12,9 +13,19 @@ namespace detail {
         //     container.push_back(start[i]);
         // }
 
-        const auto origin_pos = container.size();
-        container.resize(origin_pos + sizeof(val));
-        std::memcpy(container.data() + origin_pos, &val, sizeof(val));
+        if constexpr (std::is_same_v<Value, std::string>) {
+            // length + payload
+            const auto origin_pos = container.size();
+            uint32_t   length = val.size();
+            container.resize(origin_pos + 4 + length);
+            std::memcpy(container.data() + origin_pos, &length, 4);
+            std::memcpy(container.data() + origin_pos + 4, val.data(), length);
+        } else {
+            // TODO(x)
+            const auto origin_pos = container.size();
+            container.resize(origin_pos + sizeof(val));
+            std::memcpy(container.data() + origin_pos, &val, sizeof(val));
+        }
     }
     template <typename Value, typename Container, std::size_t I, std::size_t N>
     auto serialize_helper(const Value &val, Container &container) {
@@ -48,8 +59,20 @@ namespace detail {
         //     PRINT("start[{}]=0x{:02x}", i, (unsigned int) start[i]);
         // }
 
-        std::memcpy(start, container.data() + pos, sizeof(val));
-        pos += sizeof(val);
+        if constexpr (std::is_same_v<Value, std::string>) {
+            // length + payload
+            auto     data = container.data();
+            uint32_t length
+                = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+            PRINT("string length: {}", length);
+            val = std::string{container.data() + 4,
+                              container.data() + 4 + length};
+            pos += 4 + length;
+        } else {
+            // TODO(x)
+            std::memcpy(start, container.data() + pos, sizeof(val));
+            pos += sizeof(val);
+        }
     }
     template <typename Value, typename Container, std::size_t I, std::size_t N>
     auto deserialize_helper(Value           &val,
