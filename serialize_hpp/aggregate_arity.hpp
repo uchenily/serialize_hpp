@@ -25,6 +25,7 @@ struct aggregate_arity<
     : aggregate_arity<aggregate,
                       std::index_sequence<indices..., sizeof...(indices)>> {};
 
+// clang-format off
 template <std::size_t index, typename type>
 constexpr auto get(type &value) noexcept -> decltype(auto) {
     constexpr std::size_t arity = aggregate_arity<
@@ -56,12 +57,10 @@ constexpr auto get(type &value) noexcept -> decltype(auto) {
             return std::get<index>(std::tie(p0, p1, p2, p3, p4, p5, p6, p7));
         } else if constexpr (arity == 9) {
             auto &[p0, p1, p2, p3, p4, p5, p6, p7, p8] = value;
-            return std::get<index>(
-                std::tie(p0, p1, p2, p3, p4, p5, p6, p7, p8));
+            return std::get<index>(std::tie(p0, p1, p2, p3, p4, p5, p6, p7, p8));
         } else if constexpr (arity == 10) {
             auto &[p0, p1, p2, p3, p4, p5, p6, p7, p8, p9] = value;
-            return std::get<index>(
-                std::tie(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9));
+            return std::get<index>(std::tie(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9));
         } else {
             /* extend it by yourself for higher arities */
             static_assert(false, "Too many arities!");
@@ -70,6 +69,7 @@ constexpr auto get(type &value) noexcept -> decltype(auto) {
         static_assert(index < arity, "Index out of bounds");
     }
 }
+// clang-format on
 
 template <typename T>
 constexpr auto num_fields() noexcept -> std::size_t {
