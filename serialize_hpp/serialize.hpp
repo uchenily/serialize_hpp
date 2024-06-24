@@ -20,11 +20,12 @@ namespace detail {
             container.resize(origin_pos + 4 + length);
             std::memcpy(container.data() + origin_pos, &length, 4);
             std::memcpy(container.data() + origin_pos + 4, val.data(), length);
-        } else {
-            // TODO(x)
+        } else if constexpr (std::is_arithmetic_v<Value>) {
             const auto origin_pos = container.size();
             container.resize(origin_pos + sizeof(val));
             std::memcpy(container.data() + origin_pos, &val, sizeof(val));
+        } else {
+            static_assert(false, "Unsupported type");
         }
     }
     template <typename Value, typename Container, std::size_t I, std::size_t N>
@@ -68,10 +69,11 @@ namespace detail {
             val = std::string{container.data() + 4,
                               container.data() + 4 + length};
             pos += 4 + length;
-        } else {
-            // TODO(x)
+        } else if constexpr (std::is_arithmetic_v<Value>) {
             std::memcpy(start, container.data() + pos, sizeof(val));
             pos += sizeof(val);
+        } else {
+            static_assert(false, "Unsupported type");
         }
     }
     template <typename Value, typename Container, std::size_t I, std::size_t N>
