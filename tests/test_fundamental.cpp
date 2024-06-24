@@ -58,8 +58,24 @@ void test_floatpoint() {
     ASSERT(fs2.d - 200 < 0.001);
 }
 
+void test_boolean() {
+    struct boolean_struct {
+        bool b1;
+        bool b2;
+    };
+    auto bs = boolean_struct{
+        true,
+        false,
+    };
+    auto buf = fzto::serialize<std::string>(bs);
+    auto bs2 = fzto::deserialize<boolean_struct>(buf);
+    ASSERT(bs2.b1 == true);
+    ASSERT(bs2.b2 == false);
+}
+
 auto main() -> int {
     test_signed();
     test_unsigned();
     test_floatpoint();
+    test_boolean();
 }
