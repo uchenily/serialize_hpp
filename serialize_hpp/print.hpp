@@ -73,10 +73,23 @@ concept has_printer_print_v = requires(print_custom::printer<T> &printer,
     { printer.print(t, out) };
 };
 
+inline auto to_visible(std::string_view s) {
+    std::ostringstream oss;
+    for (char c : s) {
+        if (std::isprint(static_cast<unsigned char>(c)) != 0) {
+            oss << c;
+        } else {
+            oss << '.';
+        }
+    }
+    return oss.str();
+}
+
 template <typename T>
 auto print_to(std::ostream &out, const T &t) {
     if constexpr (std::is_convertible_v<T, std::string_view>) {
-        out << '"' << t << '"';
+        // out << '"' << t << '"';
+        out << '"' << to_visible(t) << '"';
     } else if constexpr ((std::is_integral_v<T> && !std::is_same_v<T, bool>)
                          || std::is_floating_point_v<T>) {
         out << t;
