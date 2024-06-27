@@ -2,6 +2,7 @@
 #include "serialize_hpp/debug.hpp"
 #include <cstring>
 #include <type_traits>
+#include <utility>
 namespace fzto {
 
 namespace detail {
@@ -28,13 +29,11 @@ namespace detail {
             static_assert(false, "Unsupported type");
         }
     }
-    template <typename Value, typename Container, std::size_t I, std::size_t N>
-    auto serialize_helper(const Value &val, Container &container) {
-        if constexpr (I < N) {
-            auto &field = fzto::get<I>(val);
-            serialize_to(field, container);
-            serialize_helper<Value, Container, I + 1, N>(val, container);
-        }
+    template <typename Value, typename Container, std::size_t... Indexs>
+    auto serialize_helper(const Value &val,
+                          Container   &container,
+                          std::index_sequence<Indexs...> /*unused*/) {
+        (serialize_to(fzto::get<Indexs>(val), container), ...);
     }
 } // namespace detail
 
@@ -46,7 +45,7 @@ auto serialize(const Value &val) {
     auto container = Container{};
 
     constexpr auto N = num_fields<Value>();
-    detail::serialize_helper<Value, Container, 0, N>(val, container);
+    detail::serialize_helper(val, container, std::make_index_sequence<N>{});
     return container;
 }
 
