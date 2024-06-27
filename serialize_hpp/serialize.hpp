@@ -75,15 +75,12 @@ namespace detail {
             static_assert(false, "Unsupported type");
         }
     }
-    template <typename Value, typename Container, std::size_t I, std::size_t N>
+    template <typename Value, typename Container, std::size_t... Indexs>
     auto deserialize_helper(Value           &val,
                             const Container &container,
-                            std::size_t      pos) {
-        if constexpr (I < N) {
-            auto &field = fzto::get<I>(val);
-            deserialize_from(field, container, pos);
-            deserialize_helper<Value, Container, I + 1, N>(val, container, pos);
-        }
+                            std::size_t      pos,
+                            std::index_sequence<Indexs...> /*unused*/) {
+        (deserialize_from(fzto::get<Indexs>(val), container, pos), ...);
     }
 } // namespace detail
 
@@ -94,7 +91,10 @@ template <typename Value, typename Container>
 auto deserialize(Container &container) {
     auto           val = Value{};
     constexpr auto N = num_fields<Value>();
-    detail::deserialize_helper<Value, Container, 0, N>(val, container, 0);
+    detail::deserialize_helper(val,
+                               container,
+                               0,
+                               std::make_index_sequence<N>{});
     return val;
 }
 } // namespace fzto
