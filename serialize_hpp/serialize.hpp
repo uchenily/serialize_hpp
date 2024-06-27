@@ -29,11 +29,11 @@ namespace detail {
             static_assert(false, "Unsupported type");
         }
     }
-    template <typename Value, typename Container, std::size_t... Indexs>
+    template <typename Value, typename Container, std::size_t... Indexes>
     auto serialize_helper(const Value &val,
                           Container   &container,
-                          std::index_sequence<Indexs...> /*unused*/) {
-        (serialize_to(fzto::get<Indexs>(val), container), ...);
+                          std::index_sequence<Indexes...> /*unused*/) {
+        (serialize_to(fzto::get<Indexes>(val), container), ...);
     }
 } // namespace detail
 
@@ -75,12 +75,12 @@ namespace detail {
             static_assert(false, "Unsupported type");
         }
     }
-    template <typename Value, typename Container, std::size_t... Indexs>
+    template <typename Value, typename Container, std::size_t... Indexes>
     auto deserialize_helper(Value           &val,
                             const Container &container,
                             std::size_t      pos,
-                            std::index_sequence<Indexs...> /*unused*/) {
-        (deserialize_from(fzto::get<Indexs>(val), container, pos), ...);
+                            std::index_sequence<Indexes...> /*unused*/) {
+        (deserialize_from(fzto::get<Indexes>(val), container, pos), ...);
     }
 } // namespace detail
 
