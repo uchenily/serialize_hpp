@@ -21,6 +21,22 @@ namespace detail {
             container.resize(origin_pos + 4 + length);
             std::memcpy(container.data() + origin_pos, &length, 4);
             std::memcpy(container.data() + origin_pos + 4, val.data(), length);
+        } else if constexpr (std::is_same_v<Value,
+                                            std::vector<decltype(val[0])>>) {
+            // size + size * item
+            const auto origin_pos = container.size();
+            container.resize(origin_pos + 4 + val.size() * sizeof(val[0]));
+
+            uint32_t size = val.size();
+            std::memcpy(container.data() + origin_pos + 4, &size, 4);
+
+            int  i = 0;
+            auto length = sizeof(val[0]);
+            for (const auto &item : val) {
+                std::memcpy(container.data() + origin_pos + 4 + length * i,
+                            &item,
+                            length);
+            }
         } else if constexpr (std::is_arithmetic_v<Value>) {
             const auto origin_pos = container.size();
             container.resize(origin_pos + sizeof(val));
@@ -68,6 +84,20 @@ namespace detail {
             val = std::string{container.data() + 4,
                               container.data() + 4 + length};
             pos += 4 + length;
+        } else if constexpr (std::is_same_v<Value,
+                                            std::vector<decltype(val[0])>>) {
+            // size + size * item
+            auto     data = container.data();
+            uint32_t size
+                = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+            PRINT("vector length: {}", size);
+            val.resize(size);
+            for (auto i = 0u; i < size; i++) {
+                deserialize_from(val[i],
+                                 container,
+                                 data + 4 + static_cast<std::size_t>(size) * i);
+            }
+            pos += 4 + size * sizeof(val[0]);
         } else if constexpr (std::is_arithmetic_v<Value>) {
             std::memcpy(start, container.data() + pos, sizeof(val));
             pos += sizeof(val);
