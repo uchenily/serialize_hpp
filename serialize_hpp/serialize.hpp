@@ -36,16 +36,13 @@ namespace detail {
         } else if constexpr (is_iterable_v<Value>) {
             // size + size * item
             const auto origin_pos = container.size();
-            container.resize(origin_pos + 4 + val.size() * sizeof(val[0]));
+            container.resize(origin_pos + 4);
 
             uint32_t size = val.size();
             std::memcpy(container.data() + origin_pos, &size, 4);
 
-            auto length = sizeof(val[0]);
             for (auto i = 0u; i < val.size(); i++) {
-                std::memcpy(container.data() + origin_pos + 4 + length * i,
-                            &val[i],
-                            length);
+                serialize_to(val[i], container);
             }
         } else {
             static_assert(false, "Unsupported type");
