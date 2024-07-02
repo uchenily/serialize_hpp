@@ -14,7 +14,7 @@ concept is_iterable_v = requires(Value &v) {
 namespace detail {
     template <typename Value, typename Container>
         requires(std::is_same_v<Value, std::string>
-                 || std::is_arithmetic_v<Value>)
+                 || std::is_arithmetic_v<Value> || is_iterable_v<Value>)
     auto serialize_to(const Value &val, Container &container) {
         // auto start = reinterpret_cast<const char *>(&val);
         // for (auto i = 0u; i < sizeof(val); i++) {
@@ -39,13 +39,12 @@ namespace detail {
             container.resize(origin_pos + 4 + val.size() * sizeof(val[0]));
 
             uint32_t size = val.size();
-            std::memcpy(container.data() + origin_pos + 4, &size, 4);
+            std::memcpy(container.data() + origin_pos, &size, 4);
 
-            int  i = 0;
             auto length = sizeof(val[0]);
-            for (const auto &item : val) {
+            for (auto i = 0u; i < val.size(); i++) {
                 std::memcpy(container.data() + origin_pos + 4 + length * i,
-                            &item,
+                            &val[i],
                             length);
             }
         } else {
@@ -76,7 +75,7 @@ auto serialize(const Value &val) {
 namespace detail {
     template <typename Value, typename Container>
         requires(std::is_same_v<Value, std::string>
-                 || std::is_arithmetic_v<Value>)
+                 || std::is_arithmetic_v<Value> || is_iterable_v<Value>)
     auto
     deserialize_from(Value &val, const Container &container, std::size_t &pos) {
         auto start = reinterpret_cast<char *>(&val);
@@ -102,14 +101,13 @@ namespace detail {
             auto     data = container.data();
             uint32_t size
                 = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+            pos += 4;
             PRINT("vector length: {}", size);
             val.resize(size);
             for (auto i = 0u; i < size; i++) {
-                deserialize_from(val[i],
-                                 container,
-                                 data + 4 + static_cast<std::size_t>(size) * i);
+                deserialize_from(val[i], container, pos);
+                // pos += sizeof(val[i]);
             }
-            pos += 4 + size * sizeof(val[0]);
         } else {
             static_assert(false, "Unsupported type");
         }

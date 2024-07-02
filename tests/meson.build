@@ -4,6 +4,7 @@ all_tests_sources = [
   'test_aggregate_arity.cpp',
   'test_serialize.cpp',
   'test_fundamental.cpp',
+  'test_aggregate.cpp',
 ]
 
 foreach source: all_tests_sources
