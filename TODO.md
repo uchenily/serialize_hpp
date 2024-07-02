@@ -2,7 +2,7 @@
 
 - [x] 支持`std::string`
 - [ ] 支持`std::array`
-- [ ] 支持`std::vector`
+- [x] 支持`std::vector`
 - [ ] 支持`std::map`
 - [ ] 支持`std::list`
 - [ ] 支持`std::set`
