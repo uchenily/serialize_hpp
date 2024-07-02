@@ -5,8 +5,16 @@
 #include <utility>
 namespace fzto {
 
+template <typename Value>
+concept is_iterable_v = requires(Value &v) {
+    std::ranges::begin(v);
+    std::ranges::end(v);
+};
+
 namespace detail {
     template <typename Value, typename Container>
+        requires(std::is_same_v<Value, std::string>
+                 || std::is_arithmetic_v<Value>)
     auto serialize_to(const Value &val, Container &container) {
         // auto start = reinterpret_cast<const char *>(&val);
         // for (auto i = 0u; i < sizeof(val); i++) {
@@ -21,8 +29,11 @@ namespace detail {
             container.resize(origin_pos + 4 + length);
             std::memcpy(container.data() + origin_pos, &length, 4);
             std::memcpy(container.data() + origin_pos + 4, val.data(), length);
-        } else if constexpr (std::is_same_v<Value,
-                                            std::vector<decltype(val[0])>>) {
+        } else if constexpr (std::is_arithmetic_v<Value>) {
+            const auto origin_pos = container.size();
+            container.resize(origin_pos + sizeof(val));
+            std::memcpy(container.data() + origin_pos, &val, sizeof(val));
+        } else if constexpr (is_iterable_v<Value>) {
             // size + size * item
             const auto origin_pos = container.size();
             container.resize(origin_pos + 4 + val.size() * sizeof(val[0]));
@@ -37,14 +48,11 @@ namespace detail {
                             &item,
                             length);
             }
-        } else if constexpr (std::is_arithmetic_v<Value>) {
-            const auto origin_pos = container.size();
-            container.resize(origin_pos + sizeof(val));
-            std::memcpy(container.data() + origin_pos, &val, sizeof(val));
         } else {
             static_assert(false, "Unsupported type");
         }
     }
+
     template <typename Value, typename Container, std::size_t... Indexes>
     auto serialize_helper(const Value &val,
                           Container   &container,
@@ -67,6 +75,8 @@ auto serialize(const Value &val) {
 
 namespace detail {
     template <typename Value, typename Container>
+        requires(std::is_same_v<Value, std::string>
+                 || std::is_arithmetic_v<Value>)
     auto
     deserialize_from(Value &val, const Container &container, std::size_t &pos) {
         auto start = reinterpret_cast<char *>(&val);
@@ -84,8 +94,10 @@ namespace detail {
             val = std::string{container.data() + 4,
                               container.data() + 4 + length};
             pos += 4 + length;
-        } else if constexpr (std::is_same_v<Value,
-                                            std::vector<decltype(val[0])>>) {
+        } else if constexpr (std::is_arithmetic_v<Value>) {
+            std::memcpy(start, container.data() + pos, sizeof(val));
+            pos += sizeof(val);
+        } else if constexpr (is_iterable_v<Value>) {
             // size + size * item
             auto     data = container.data();
             uint32_t size
@@ -98,13 +110,11 @@ namespace detail {
                                  data + 4 + static_cast<std::size_t>(size) * i);
             }
             pos += 4 + size * sizeof(val[0]);
-        } else if constexpr (std::is_arithmetic_v<Value>) {
-            std::memcpy(start, container.data() + pos, sizeof(val));
-            pos += sizeof(val);
         } else {
             static_assert(false, "Unsupported type");
         }
     }
+
     template <typename Value, typename Container, std::size_t... Indexes>
     auto deserialize_helper(Value           &val,
                             const Container &container,
