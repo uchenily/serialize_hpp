@@ -99,8 +99,12 @@ namespace detail {
             uint32_t size
                 = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
             pos += 4;
-            PRINT("vector length: {}", size);
-            val.resize(size);
+            PRINT("iterable object length: {}", size);
+            if constexpr (std::is_same_v<
+                              Value,
+                              std::vector<typename Value::value_type>>) {
+                val.resize(size);
+            }
             for (auto i = 0u; i < size; i++) {
                 deserialize_from(val[i], container, pos);
                 // pos += sizeof(val[i]);
