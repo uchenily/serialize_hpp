@@ -25,3 +25,7 @@ auto main() -> int {
     ASSERT(another.age == 18);
 }
 ```
+
+## Try on godbolt
+
+[compiler-explorer](https://godbolt.org/z/qs38c1erx)
