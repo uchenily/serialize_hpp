@@ -84,9 +84,7 @@ auto serialize(const Value &val) {
 }
 
 namespace detail {
-    template <typename Value, typename Container>
-        requires(std::is_same_v<Value, std::string>
-                 || std::is_arithmetic_v<Value> || is_iterable_v<Value>)
+    template <Arithmetic Value, typename Container>
     auto
     deserialize_from(Value &val, const Container &container, std::size_t &pos) {
         auto start = reinterpret_cast<char *>(&val);
@@ -95,36 +93,51 @@ namespace detail {
         //     PRINT("start[{}]=0x{:02x}", i, (unsigned int) start[i]);
         // }
 
-        if constexpr (std::is_same_v<Value, std::string>) {
-            // length + payload
-            auto     data = container.data();
-            uint32_t length
-                = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
-            PRINT("string length: {}", length);
-            val = std::string{container.data() + 4,
-                              container.data() + 4 + length};
-            pos += 4 + length;
-        } else if constexpr (std::is_arithmetic_v<Value>) {
-            std::memcpy(start, container.data() + pos, sizeof(val));
-            pos += sizeof(val);
-        } else if constexpr (is_iterable_v<Value>) {
-            // size + size * item
-            auto     data = container.data();
-            uint32_t size
-                = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
-            pos += 4;
-            PRINT("iterable object length: {}", size);
-            if constexpr (std::is_same_v<
-                              Value,
-                              std::vector<typename Value::value_type>>) {
-                val.resize(size);
-            }
-            for (auto i = 0u; i < size; i++) {
-                deserialize_from(val[i], container, pos);
-                // pos += sizeof(val[i]);
-            }
-        } else {
-            static_assert(false, "Unsupported type");
+        std::memcpy(start, container.data() + pos, sizeof(val));
+        pos += sizeof(val);
+    }
+
+    template <String Value, typename Container>
+    auto
+    deserialize_from(Value &val, const Container &container, std::size_t &pos) {
+        // length + payload
+        auto     data = container.data();
+        uint32_t length
+            = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+        PRINT("string length: {}", length);
+        val = std::string{container.data() + 4, container.data() + 4 + length};
+        pos += 4 + length;
+    }
+
+    template <Vector Value, typename Container>
+    auto
+    deserialize_from(Value &val, const Container &container, std::size_t &pos) {
+        // size + size * item
+        auto     data = container.data();
+        uint32_t size = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+        pos += 4;
+        PRINT("iterable object length: {}", size);
+        if (val.size() < size) {
+            val.resize(size);
+        }
+        for (auto i = 0u; i < size; i++) {
+            deserialize_from(val[i], container, pos);
+            // pos += sizeof(val[i]);
+        }
+    }
+
+    template <Array Value, typename Container>
+    auto
+    deserialize_from(Value &val, const Container &container, std::size_t &pos) {
+        // size + size * item
+        auto     data = container.data();
+        uint32_t size = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
+        pos += 4;
+        PRINT("iterable object length: {}", size);
+        ASSERT(size == val.size());
+        for (auto i = 0u; i < size; i++) {
+            deserialize_from(val[i], container, pos);
+            // pos += sizeof(val[i]);
         }
     }
 
