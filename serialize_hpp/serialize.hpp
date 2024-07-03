@@ -1,8 +1,9 @@
 #include "serialize_hpp/aggregate_arity.hpp"
+#include "serialize_hpp/concept.hpp"
 #include "serialize_hpp/debug.hpp"
+
 #include <cstring>
-#include <type_traits>
-#include <utility>
+
 namespace fzto {
 
 template <typename Value>
@@ -12,40 +13,53 @@ concept is_iterable_v = requires(Value &v) {
 };
 
 namespace detail {
-    template <typename Value, typename Container>
-        requires(std::is_same_v<Value, std::string>
-                 || std::is_arithmetic_v<Value> || is_iterable_v<Value>)
+    template <Arithmetic Value, typename Container>
     auto serialize_to(const Value &val, Container &container) {
         // auto start = reinterpret_cast<const char *>(&val);
         // for (auto i = 0u; i < sizeof(val); i++) {
         //     // PRINT("start[{}]=0x{:02x}", i, (unsigned int) start[i]);
         //     container.push_back(start[i]);
         // }
+        const auto origin_pos = container.size();
+        container.resize(origin_pos + sizeof(val));
+        std::memcpy(container.data() + origin_pos, &val, sizeof(val));
+    }
 
-        if constexpr (std::is_same_v<Value, std::string>) {
-            // length + payload
-            const auto origin_pos = container.size();
-            uint32_t   length = val.size();
-            container.resize(origin_pos + 4 + length);
-            std::memcpy(container.data() + origin_pos, &length, 4);
-            std::memcpy(container.data() + origin_pos + 4, val.data(), length);
-        } else if constexpr (std::is_arithmetic_v<Value>) {
-            const auto origin_pos = container.size();
-            container.resize(origin_pos + sizeof(val));
-            std::memcpy(container.data() + origin_pos, &val, sizeof(val));
-        } else if constexpr (is_iterable_v<Value>) {
-            // size + size * item
-            const auto origin_pos = container.size();
-            container.resize(origin_pos + 4);
+    template <String Value, typename Container>
+    auto serialize_to(const Value &val, Container &container) {
+        // length + payload
+        const auto origin_pos = container.size();
+        uint32_t   length = val.size();
+        container.resize(origin_pos + 4 + length);
+        std::memcpy(container.data() + origin_pos, &length, 4);
+        std::memcpy(container.data() + origin_pos + 4, val.data(), length);
+    }
 
-            uint32_t size = val.size();
-            std::memcpy(container.data() + origin_pos, &size, 4);
+    template <Vector Value, typename Container>
+    auto serialize_to(const Value &val, Container &container) {
+        // size + size * item
+        const auto origin_pos = container.size();
+        container.resize(origin_pos + 4);
 
-            for (auto i = 0u; i < val.size(); i++) {
-                serialize_to(val[i], container);
-            }
-        } else {
-            static_assert(false, "Unsupported type");
+        uint32_t size = val.size();
+        std::memcpy(container.data() + origin_pos, &size, 4);
+
+        for (auto i = 0u; i < val.size(); i++) {
+            serialize_to(val[i], container);
+        }
+    }
+
+    template <Array Value, typename Container>
+    auto serialize_to(const Value &val, Container &container) {
+        // size + size * item
+        const auto origin_pos = container.size();
+        container.resize(origin_pos + 4);
+
+        uint32_t size = val.size();
+        std::memcpy(container.data() + origin_pos, &size, 4);
+
+        for (auto i = 0u; i < val.size(); i++) {
+            serialize_to(val[i], container);
         }
     }
 
