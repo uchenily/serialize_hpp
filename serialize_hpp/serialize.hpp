@@ -51,13 +51,7 @@ namespace detail {
 
     template <Array Value, typename Container>
     auto serialize_to(const Value &val, Container &container) {
-        // size + size * item
-        const auto origin_pos = container.size();
-        container.resize(origin_pos + 4);
-
-        uint32_t size = val.size();
-        std::memcpy(container.data() + origin_pos, &size, 4);
-
+        // size * item
         for (auto i = 0u; i < val.size(); i++) {
             serialize_to(val[i], container);
         }
@@ -116,28 +110,22 @@ namespace detail {
         auto     data = container.data();
         uint32_t size = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
         pos += 4;
-        PRINT("iterable object length: {}", size);
+        PRINT("std::vector length: {}", size);
         if (val.size() < size) {
             val.resize(size);
         }
         for (auto i = 0u; i < size; i++) {
             deserialize_from(val[i], container, pos);
-            // pos += sizeof(val[i]);
         }
     }
 
     template <Array Value, typename Container>
     auto
     deserialize_from(Value &val, const Container &container, std::size_t &pos) {
-        // size + size * item
-        auto     data = container.data();
-        uint32_t size = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
-        pos += 4;
-        PRINT("iterable object length: {}", size);
-        ASSERT(size == val.size());
-        for (auto i = 0u; i < size; i++) {
+        // size * item
+        PRINT("std::array length: {}", val.size());
+        for (auto i = 0u; i < val.size(); i++) {
             deserialize_from(val[i], container, pos);
-            // pos += sizeof(val[i]);
         }
     }
 
