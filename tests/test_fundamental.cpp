@@ -73,9 +73,36 @@ void test_boolean() {
     ASSERT(bs2.b2 == false);
 }
 
+void test_enum() {
+    enum class Color {
+        RED,
+        GREEN,
+        BLUE,
+    };
+    enum Status {
+        INIT,
+        RUNNING,
+        EXIT,
+    };
+    struct enum_struct {
+        Color  color;
+        Status status;
+    };
+
+    auto es = enum_struct{
+        Color::GREEN,
+        RUNNING,
+    };
+    auto buf = fzto::serialize<std::string>(es);
+    auto es2 = fzto::deserialize<enum_struct>(buf);
+    ASSERT(es2.color == Color::GREEN);
+    ASSERT(es2.status == RUNNING);
+}
+
 auto main() -> int {
     test_signed();
     test_unsigned();
     test_floatpoint();
     test_boolean();
+    test_enum();
 }

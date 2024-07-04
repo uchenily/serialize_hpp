@@ -57,6 +57,13 @@ namespace detail {
         }
     }
 
+    template <Enum Value, typename Container>
+    auto serialize_to(const Value &val, Container &container) {
+        const auto origin_pos = container.size();
+        container.resize(origin_pos + sizeof(val));
+        std::memcpy(container.data() + origin_pos, &val, sizeof(val));
+    }
+
     template <typename Value, typename Container, std::size_t... Indexes>
     auto serialize_helper(const Value &val,
                           Container   &container,
@@ -127,6 +134,14 @@ namespace detail {
         for (auto i = 0u; i < val.size(); i++) {
             deserialize_from(val[i], container, pos);
         }
+    }
+
+    template <Enum Value, typename Container>
+    auto
+    deserialize_from(Value &val, const Container &container, std::size_t &pos) {
+        auto start = reinterpret_cast<char *>(&val);
+        std::memcpy(start, container.data() + pos, sizeof(val));
+        pos += sizeof(val);
     }
 
     template <typename Value, typename Container, std::size_t... Indexes>
