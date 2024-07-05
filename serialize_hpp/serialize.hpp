@@ -17,7 +17,7 @@ namespace detail {
     auto serialize_to(const Value &val, WriteBuffer &buf) {
         // auto start = reinterpret_cast<const char *>(&val);
         // for (auto i = 0u; i < sizeof(val); i++) {
-        //     // PRINT("start[{}]=0x{:02x}", i, (unsigned int) start[i]);
+        //     // LOG_INFO("start[{}]=0x{:02x}", i, (unsigned int) start[i]);
         //     buf.push_back(start[i]);
         // }
         const auto origin_pos = buf.size();
@@ -93,7 +93,7 @@ namespace detail {
         auto start = reinterpret_cast<char *>(&val);
         // for (auto i = 0u; i < sizeof(val); i++) {
         //     start[i] = buf[pos++];
-        //     PRINT("start[{}]=0x{:02x}", i, (unsigned int) start[i]);
+        //     LOG_INFO("start[{}]=0x{:02x}", i, (unsigned int) start[i]);
         // }
 
         std::memcpy(start, buf.data() + pos, sizeof(val));
@@ -106,7 +106,7 @@ namespace detail {
         auto     data = buf.data();
         uint32_t length
             = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
-        PRINT("string length: {}", length);
+        LOG_INFO("string length: {}", length);
         val = std::string{buf.data() + 4, buf.data() + 4 + length};
         pos += 4 + length;
     }
@@ -117,7 +117,7 @@ namespace detail {
         auto     data = buf.data();
         uint32_t size = data[0] | data[1] << 8 | data[2] << 16 | data[3] << 24;
         pos += 4;
-        PRINT("std::vector length: {}", size);
+        LOG_INFO("std::vector length: {}", size);
         if (val.size() < size) {
             val.resize(size);
         }
@@ -129,7 +129,7 @@ namespace detail {
     template <Array Value, typename ReadBuffer>
     auto deserialize_from(Value &val, const ReadBuffer &buf, std::size_t &pos) {
         // size * item
-        PRINT("std::array length: {}", val.size());
+        LOG_INFO("std::array length: {}", val.size());
         for (auto i = 0u; i < val.size(); i++) {
             deserialize_from(val[i], buf, pos);
         }
